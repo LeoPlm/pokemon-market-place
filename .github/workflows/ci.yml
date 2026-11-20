@@ -1,0 +1,113 @@
+# Intégration continue : lancée à chaque PR vers dev ou main, et à chaque push sur ces branches.
+# Les noms des jobs (« name: ») sont ceux exigés par les règles de branches GitHub :
+# ne pas les renommer sans mettre à jour les rulesets.
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PHP_VERSION: '8.4'
+  PHP_EXTENSIONS: pdo_mysql, intl, zip, gd, bcmath, exif
+
+jobs:
+  pint:
+    name: Pint (style)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+
+      - name: Vérifier le formatage
+        run: vendor/bin/pint --test
+
+  larastan:
+    name: Larastan (analyse statique)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+
+      - name: Analyse statique
+        run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress --error-format=github
+
+  tests:
+    name: Pest (tests)
+    runs-on: ubuntu-latest
+
+    # Même SGBD qu'en production : les tests tournent sur MySQL, pas sur SQLite
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: testing
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    # Identifiants de la base jetable de la CI uniquement (aucun secret réel)
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: testing
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - uses: ramsey/composer-install@v3
+
+      - name: Préparer l'environnement
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Compiler les assets (les vues en ont besoin)
+        run: |
+          npm ci
+          npm run build
+
+      - name: Lancer les tests
+        run: vendor/bin/pest

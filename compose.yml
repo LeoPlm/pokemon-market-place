@@ -1,0 +1,56 @@
+# Environnement de développement : docker compose up
+#   Application : http://localhost:8001
+#   Mailpit     : http://localhost:8025
+# Les identifiants de la base sont lus dans le fichier .env (non versionné).
+
+name: pokemon-market-place
+
+services:
+  app:
+    build: .
+    ports:
+      - "8001:8000"   # Laravel
+      - "5173:5173"   # Vite (rechargement à chaud)
+    volumes:
+      - .:/var/www/html
+      - vendor:/var/www/html/vendor
+      - node_modules:/var/www/html/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "composer install --no-interaction
+      && npm install
+      && php artisan migrate --force
+      && npx concurrently --names server,queue,vite
+      'php artisan serve --host=0.0.0.0 --port=8000'
+      'php artisan queue:listen --tries=1'
+      'npm run dev'"
+
+  db:
+    image: mysql:8.4
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8025:8025"   # interface web des emails de test
+
+volumes:
+  db_data:
+  vendor:
+  node_modules:
