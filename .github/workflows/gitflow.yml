@@ -1,0 +1,46 @@
+# Vérifie que chaque PR respecte le Gitflow du projet :
+#  - vers main : uniquement depuis dev, release/* ou hotfix/*
+#  - vers dev  : depuis une branche de travail préfixée (feature/, fix/, …)
+#  - titre de PR au format Conventional Commits (feat: …, fix: …)
+name: Gitflow
+
+on:
+  pull_request:
+    branches: [dev, main]
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  branch-policy:
+    name: Gitflow (branches et titre de PR)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier la branche source et le titre
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "PR : $HEAD → $BASE"
+          echo "Titre : $TITLE"
+
+          if [ "$BASE" = "main" ]; then
+            if ! echo "$HEAD" | grep -Eq '^(dev|release/.+|hotfix/.+)$'; then
+              echo "::error::Une PR vers main doit venir de dev, release/* ou hotfix/* (reçu : $HEAD)."
+              exit 1
+            fi
+          elif [ "$BASE" = "dev" ]; then
+            if ! echo "$HEAD" | grep -Eq '^(feature|fix|hotfix|release|chore|docs|refactor|test|ci)/[a-z0-9._-]+$'; then
+              echo "::error::Nom de branche invalide : $HEAD. Format attendu : feature/<nom>, fix/<nom>, chore/<nom>… (minuscules, chiffres, tirets)."
+              exit 1
+            fi
+          fi
+
+          if ! echo "$TITLE" | grep -Eq '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._-]+\))?!?: .+'; then
+            echo "::error::Le titre de la PR doit suivre les Conventional Commits, ex. « feat: créer une annonce » ou « fix(paiement): … »."
+            exit 1
+          fi
+
+          echo "Gitflow respecté."
