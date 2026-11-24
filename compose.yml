@@ -18,8 +18,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # Au démarrage : active les hooks Git du projet (.githooks : linters avant commit/push),
+    # installe les dépendances, applique les migrations, puis lance serveur + queue + Vite
     command: >
-      sh -c "composer install --no-interaction
+      sh -c "git config core.hooksPath .githooks
+      && composer install --no-interaction
       && npm install
       && php artisan migrate --force
       && npx concurrently --names server,queue,vite

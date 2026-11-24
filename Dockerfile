@@ -10,7 +10,8 @@ RUN install-php-extensions pdo_mysql intl zip gd bcmath pcntl exif opcache
 # Outils système
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git unzip default-mysql-client \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && git config --system --add safe.directory /var/www/html
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer

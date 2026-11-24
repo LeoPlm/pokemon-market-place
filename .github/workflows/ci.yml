@@ -38,6 +38,22 @@ jobs:
       - name: Vérifier le formatage
         run: vendor/bin/pint --test
 
+  prettier:
+    name: Prettier (front)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Vérifier le formatage des vues Blade, du CSS et du JS
+        run: npm run format:check
+
   larastan:
     name: Larastan (analyse statique)
     runs-on: ubuntu-latest
