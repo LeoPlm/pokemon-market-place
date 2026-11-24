@@ -1,0 +1,15 @@
+# Prettier ne s'occupe que du front (vues Blade, CSS, JS).
+# Le PHP est formaté par Laravel Pint.
+vendor/
+node_modules/
+public/
+storage/
+bootstrap/cache/
+.vite/
+resources/views/flux/
+# Page d'accueil par défaut de Laravel (CSS intégré), remplacée par la vraie page d'accueil (tâche n° 27)
+resources/views/welcome.blade.php
+# Le plugin Blade casse l'attribut Alpine x-init qui contient @this : formatage instable
+resources/views/components/action-message.blade.php
+composer.lock
+package-lock.json

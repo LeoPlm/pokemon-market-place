@@ -1,0 +1,32 @@
+#!/bin/sh
+# Bloque le push si le projet entier ne passe pas les linters :
+#   - Laravel Pint (style PHP)
+#   - Prettier (style des vues Blade, du CSS et du JS)
+#   - Larastan (analyse statique PHP)
+# Les tests (Pest) ne sont pas lancés ici car trop longs : la CI GitHub s'en charge.
+
+if ! docker compose ps --status running --services 2>/dev/null | grep -qx app; then
+    echo "✖ Push bloqué : le conteneur « app » ne tourne pas, impossible de lancer les linters."
+    echo "  Lance d'abord : docker compose up -d"
+    exit 1
+fi
+
+status=0
+
+echo "→ Pint (PHP)…"
+docker compose exec -T app vendor/bin/pint --test || status=1
+
+echo "→ Prettier (Blade, CSS, JS)…"
+docker compose exec -T app npm run --silent format:check || status=1
+
+echo "→ Larastan (analyse statique)…"
+docker compose exec -T app vendor/bin/phpstan analyse --memory-limit=1G --no-progress || status=1
+
+if [ "$status" -ne 0 ]; then
+    echo ""
+    echo "✖ Push bloqué : corrige les erreurs ci-dessus."
+    echo "  Style PHP   : docker compose exec app vendor/bin/pint"
+    echo "  Style front : docker compose exec app npm run format"
+fi
+
+exit $status

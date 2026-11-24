@@ -1,0 +1,41 @@
+#!/bin/sh
+# Bloque le commit si les fichiers indexés ne respectent pas le style du projet :
+#   - PHP              → Laravel Pint
+#   - Blade, CSS, JS   → Prettier
+# Les outils tournent dans le conteneur Docker « app » (PHP n'est pas installé sur la machine).
+
+if ! docker compose ps --status running --services 2>/dev/null | grep -qx app; then
+    echo "✖ Commit bloqué : le conteneur « app » ne tourne pas, impossible de vérifier le style."
+    echo "  Lance d'abord : docker compose up -d"
+    exit 1
+fi
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+php_files=$(echo "$staged" | grep -E '\.php$' | grep -vE '\.blade\.php$')
+front_files=$(echo "$staged" | grep -E '^resources/.*\.(blade\.php|css|js)$')
+status=0
+
+if [ -n "$php_files" ]; then
+    echo "→ Pint (PHP)…"
+    # shellcheck disable=SC2086
+    if ! docker compose exec -T app vendor/bin/pint --test $php_files; then
+        echo "✖ Style PHP non conforme. Corrige avec : docker compose exec app vendor/bin/pint"
+        status=1
+    fi
+fi
+
+if [ -n "$front_files" ]; then
+    echo "→ Prettier (Blade, CSS, JS)…"
+    # shellcheck disable=SC2086
+    if ! docker compose exec -T app npx prettier --check $front_files; then
+        echo "✖ Style front non conforme. Corrige avec : docker compose exec app npm run format"
+        status=1
+    fi
+fi
+
+if [ "$status" -ne 0 ]; then
+    echo ""
+    echo "Commit bloqué. Corrige, refais « git add », puis recommite."
+fi
+
+exit $status

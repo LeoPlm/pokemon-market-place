@@ -11,8 +11,7 @@ trim_trailing_whitespace = true
 [*.md]
 trim_trailing_whitespace = false
 
-[*.{yml,yaml}]
+# Front (formaté par Prettier) et fichiers de config : 2 espaces
+# Le PHP reste à 4 espaces (norme PSR-12 appliquée par Pint)
+[*.{blade.php,css,js,json,yml,yaml}]
 indent_size = 2
-
-[docker-compose.yml]
-indent_size = 4
