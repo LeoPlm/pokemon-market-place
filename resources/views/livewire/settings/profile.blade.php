@@ -7,7 +7,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
 
 new class extends Component {
-    public string $name = '';
+    public string $username = '';
     public string $email = '';
 
     /**
@@ -15,7 +15,7 @@ new class extends Component {
      */
     public function mount(): void
     {
-        $this->name = Auth::user()->name;
+        $this->username = Auth::user()->username;
         $this->email = Auth::user()->email;
     }
 
@@ -27,7 +27,8 @@ new class extends Component {
         $user = Auth::user();
 
         $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255'],
+            // RG-01 : pseudo unique de 3 à 20 caractères
+            'username' => ['required', 'string', 'min:3', 'max:20', 'alpha_dash:ascii', Rule::unique(User::class)->ignore($user->id)],
 
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
         ]);
@@ -40,7 +41,7 @@ new class extends Component {
 
         $user->save();
 
-        $this->dispatch('profile-updated', name: $user->name);
+        $this->dispatch('profile-updated', username: $user->username);
     }
 
     /**
@@ -65,10 +66,10 @@ new class extends Component {
 <section class="w-full">
   @include('partials.settings-heading')
 
-  <x-settings.layout heading="Profile" subheading="Update your name and email address">
+  <x-settings.layout heading="Profile" subheading="Update your username and email address">
     <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
-      <flux:input wire:model="name" label="{{ __('Name') }}" type="text" name="name" required autofocus
-        autocomplete="name" />
+      <flux:input wire:model="username" label="{{ __('Pseudo') }}" type="text" name="username" required autofocus
+        autocomplete="username" />
 
       <div>
         <flux:input wire:model="email" label="{{ __('Email') }}" type="email" name="email" required

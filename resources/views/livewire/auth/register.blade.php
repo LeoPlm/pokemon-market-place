@@ -9,7 +9,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
 new #[Layout('components.layouts.auth')] class extends Component {
-    public string $name = '';
+    public string $username = '';
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
@@ -20,7 +20,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public function register(): void
     {
         $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255'],
+            // RG-01 : pseudo unique de 3 à 20 caractères
+            'username' => ['required', 'string', 'min:3', 'max:20', 'alpha_dash:ascii', 'unique:' . User::class],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
@@ -42,10 +43,10 @@ new #[Layout('components.layouts.auth')] class extends Component {
   <x-auth-session-status class="text-center" :status="session('status')" />
 
   <form wire:submit="register" class="flex flex-col gap-6">
-    <!-- Name -->
+    <!-- Pseudo -->
     <div class="grid gap-2">
-      <flux:input wire:model="name" id="name" label="{{ __('Name') }}" type="text" name="name" required
-        autofocus autocomplete="name" placeholder="Full name" />
+      <flux:input wire:model="username" id="username" label="{{ __('Pseudo') }}" type="text" name="username" required
+        autofocus autocomplete="username" placeholder="Pseudo" />
     </div>
 
     <!-- Email Address -->

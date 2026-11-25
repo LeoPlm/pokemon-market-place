@@ -52,7 +52,7 @@
               </span>
 
               <div class="grid flex-1 text-left text-sm leading-tight">
-                <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
+                <span class="truncate font-semibold">{{ auth()->user()->username }}</span>
                 <span class="truncate text-xs">{{ auth()->user()->email }}</span>
               </div>
             </div>

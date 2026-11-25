@@ -1,0 +1,20 @@
+<?php
+
+namespace App\Enums;
+
+/**
+ * Statut d'un litige.
+ */
+enum DisputeStatus: string
+{
+    case Open = 'open';
+    case Resolved = 'resolved';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Open => 'Ouvert',
+            self::Resolved => 'Tranché',
+        };
+    }
+}
