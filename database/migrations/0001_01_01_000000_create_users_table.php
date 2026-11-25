@@ -11,14 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Entité Utilisateur du MCD (correspondance des noms : docs/base-de-donnees.md)
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->id();                                        // id_utilisateur
+            $table->string('username', 20)->unique();            // pseudo (RG-01 : unique, 3 à 20 caractères)
+            $table->string('first_name')->nullable();            // prenom
+            $table->string('last_name')->nullable();             // nom
+            $table->string('email')->unique();                   // adresse_mail
+            $table->timestamp('email_verified_at')->nullable();  // date_verif_email
+            $table->string('password');                          // mot_de_passe (haché)
+            $table->string('address')->nullable();               // adresse
+            $table->string('postal_code', 10)->nullable();       // code_postal
+            $table->string('city')->nullable();                  // ville
+            $table->char('country', 2)->nullable();              // pays (code ISO 3166-1, ex. FR)
+            $table->string('role', 20)->default('user')->index(); // role (App\Enums\UserRole)
+            $table->timestamp('suspended_at')->nullable();       // suspension (null = compte actif)
+            $table->string('stripe_account_id')->nullable()->unique(); // id_stripe (compte Stripe Connect)
+            $table->boolean('stripe_account_active')->default(false); // compte_active (RG-02)
             $table->rememberToken();
-            $table->timestamps();
+            $table->timestamps();                                // created_at = date_inscription
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

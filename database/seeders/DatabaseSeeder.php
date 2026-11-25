@@ -10,13 +10,12 @@ class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
+     * Les vraies données de démo (catalogue, annonces, commandes…) viendront avec la tâche « Données de démo ».
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
         User::factory()->create([
-            'name' => 'Test User',
+            'username' => 'test',
             'email' => 'test@example.com',
         ]);
     }

@@ -153,24 +153,26 @@ Toute transition de statut absente du schéma est **refusée côté serveur** (i
 
 Point clé à défendre en soutenance : **séparer la carte de référence (`Carte`, catalogue standardisé) de l'annonce (`Annonce`, exemplaire physique vendu)**. C'est ce qui résout le problème des fiches non standardisées et permet les filtres par extension et rareté.
 
-Entités et attributs du MCD (noms en français dans le MCD ; les tables Laravel peuvent être en anglais, **mais il faut garder une correspondance claire et la documenter**) :
+**Le schéma est implémenté** (migrations `database/migrations/2026_11_25_*`, modèles `app/Models`, Enums `app/Enums`). La correspondance complète MCD → tables et colonnes, les contraintes et la justification des choix sont dans **[docs/base-de-donnees.md](docs/base-de-donnees.md)** : à tenir à jour à chaque nouvelle migration. Toute colonne ou table ajoutée doit aussi l'être dans le MCD Looping, pour que le schéma défendu en soutenance reste identique à la base.
 
-| Entité MCD | Attributs | Table Laravel suggérée |
+Entités et attributs du MCD (noms en français dans le MCD, tables et colonnes en anglais) :
+
+| Entité MCD | Attributs | Table Laravel |
 |---|---|---|
 | **Extension** | id_extension, nom, date_sortie, logo, slug | `sets` |
 | **Carte** | id_carte, nom, numero, rarete, image, id_externe (id API TCG) | `cards` |
 | **Utilisateur** | id_utilisateur, pseudo, prenom, nom, adresse_mail, mot_de_passe, adresse, code_postal, ville, pays, date_inscription, role, date_verif_email, suspension, id_stripe, compte_active | `users` |
 | **Annonce** | id_annonce, description, date, prix, etat, edition, langue, gradee, organisme_grading, note_si_gradee, mode_envoi, statut | `listings` |
 | **Photo** | id_photo, chemin, position, date_ajout (2..8 par annonce) | `listing_photos` |
-| **Commande** | id_commande, date_paiement, date_expedition, date_reception, prix, frais_port, frais_protection, total, statut, numero_suivi, id_paiement_stripe, prenom, nom, adresse, ville, code_postal, pays (adresse de livraison **recopiée**) | `orders` (+ `order_items` / liaison commande ↔ annonces) |
+| **Commande** | id_commande, date_paiement, date_expedition, date_reception, prix, frais_port, frais_protection, total, statut, numero_suivi, id_paiement_stripe, prenom, nom, adresse, ville, code_postal, pays (adresse de livraison **recopiée**) | `orders` (pas de table de liaison : l'annonce porte `order_id`, car Annonce 0,1 — *DONNER LIEU* — Commande 1,n) |
 | **Avis** | id_avis, Note, commentaire, date_avis, reponse_vendeur, date_reponse_vendeur | `reviews` (unique par commande) |
 | **Commentaire** | id_commentaire, date, contenu, masque, motif_masquage | `comments` |
 | **Conversation** | id_conversation, date_debut | `conversations` (unique par annonce + acheteur) |
 | **Message** | id_message, contenu, date_envoi, date_lecture | `messages` |
-| **Signalement** | id_signalement, motif, … | `reports` |
+| **Signalement** | id_signalement, date_debut, motif, description, statut | `reports` |
 | **Litige** | id_litige, date_ouverture, motif, description, statut, decision, justification, date_resolution | `disputes` |
 
-Associations du MCD : Extension *contenir* Carte ; Carte *illustrer* Annonce ; Utilisateur *publier* Annonce ; Annonce *contenir* Photo ; Utilisateur *passer* Commande ; Commande *donner lieu* à Avis ; Commande peut *ouvrir* un Litige (0..1), *tranché* par un modérateur ; Utilisateur *écrire* Commentaire (avec *répondre*) ; Conversation *concerner* Annonce, *initiée* par l'acheteur ; Message *envoyé* dans une Conversation ; Utilisateur *rédiger* Signalement qui *vise* une cible.
+Associations du MCD : Extension *contenir* Carte ; Carte *Vendre* Annonce ; Utilisateur *Publier* Annonce ; Photo *Illustrer* Annonce (2..8) ; Commande *DONNER LIEU* à Annonce (une annonce appartient à 0 ou 1 commande) ; Utilisateur *PASSER* Commande ; Commande *NOTER* Avis (0..1) ; Commande *DONNER* Litige (0..1), *Trancher* par un modérateur ; Annonce *Recevoir* Commentaire, Utilisateur *Ecrire* Commentaire, Commentaire *Répondre* (réflexive) ; Annonce *OUVRIR* Conversation, Utilisateur *Initier* Conversation ; Conversation *AVOIR* Message, Utilisateur *Envoyer* Message ; Utilisateur *Rediger* Signalement, qui *Viser* une Annonce ou *Concerner* un Commentaire (contrainte XT).
 
 Contrainte explicite du MCD :
 ```sql
@@ -263,11 +265,11 @@ Exigences d'intégration :
 ## 9. Conventions de travail
 
 ### Git (Gitflow, exigé par le barème)
-- `main` : production. Mise à jour **uniquement par PR** depuis `develop` (ou `release/*`, `hotfix/*`).
-- `develop` : branche d'intégration (branche par défaut).
-- `feature/<nom-court>` : **une tâche = une carte Trello = une branche = une PR vers `develop`**, relue par l'autre membre avant le merge.
+- `main` : production. Mise à jour **uniquement par PR** depuis `dev` (ou `release/*`, `hotfix/*`).
+- `dev` : branche d'intégration (branche par défaut).
+- `feature/<nom-court>` : **une tâche = une carte Trello = une branche = une PR vers `dev`**, relue par l'autre membre avant le merge.
 - Commits en **Conventional Commits** : `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`, `ci:`…
-- **Ne jamais committer directement sur `main` ni sur `develop`.** Ne jamais committer de secrets. Ne pas pousser, merger ni ouvrir de PR sans demande explicite.
+- **Ne jamais committer directement sur `main` ni sur `dev`.** Ne jamais committer de secrets. Ne pas pousser, merger ni ouvrir de PR sans demande explicite.
 
 ### Définition de « terminé »
 Une tâche est terminée seulement si : la **CI est verte** (Pint, Larastan, Pest) et les **tests de la fonctionnalité passent**. Priorité des tests : paiement, séquestre, autorisations, transitions de statut, calculs de frais.
@@ -310,7 +312,7 @@ Appliquer le **cahier des charges fonctionnel**, plus récent que les cartes Tre
 |---|---|---|
 | Modération des annonces | Statuts « brouillon → en attente de modération → publiée / refusée » | **RG-11 : modération a posteriori**, publication immédiate |
 | Rémunération | « Transfert au vendeur = prix − commission » | **RG-14/17** : l'acheteur paie des frais de protection ; le vendeur touche prix + port |
-| Cibles d'un signalement | Annonce, commentaire, profil, message | Le CDC dit annonce, commentaire ou profil ; **le MCD n'autorise qu'annonce OU commentaire**. À clarifier avec l'équipe avant d'implémenter |
+| Cibles d'un signalement | Annonce, commentaire, profil, message | **Tranché : on suit le MCD**, un signalement vise une annonce OU un commentaire (contrainte XT). Le profil et le message ne sont pas signalables |
 
 ---
 
@@ -332,7 +334,7 @@ Appliquer le **cahier des charges fonctionnel**, plus récent que les cartes Tre
 
 Ordre des tâches (Notion, colonne « Ordre ») : 1 SGBD (✅ MySQL) → 2 VPS/domaine → 3 dépôt GitHub + Gitflow → 4 init Laravel (starter kit Livewire) → 5 Docker dev → 6 CI → 7 préparation VPS → 8 coquille HTTPS → 9 migrations et modèles → 10 tokens Figma + layout + composants Blade → 11 auth → 12 rôles et Policies → 13 import catalogue → 14 profils → 15 pages catalogue → 16 créer une annonce → 17 gérer mes annonces → 18 fiche annonce → 19 recherche → 20 Stripe Connect → 21 panier + Checkout → 22 webhooks → 23 cycle de vie commande et séquestre → 24 tableau de bord → 25 Docker prod v1 → 26 préprod → 27 accueil → 28 messagerie → 29 notation → 30 commentaires → 31 back-office → 32 signalements → 33 litiges et SAV → 34 emails et notifications → 35 pages légales et erreurs → 36 API REST v1 → 37 tests critiques → 38 données de démo → 39 audit sécurité → 40 Docker prod final → 41 mise en prod → 42 sauvegardes et uptime → 43 recette → 44-46 soutenance → 47-50 bonus (OAuth/2FA, SEO, déploiement auto, Sentry/GlitchTip).
 
-**État au 19/11/2026** : la conception est terminée (CDC métier et fonctionnel, parcours, wireframes, maquettes, MCD). Le dépôt ne contient encore qu'un README : **le projet Laravel n'est pas encore initialisé**. Toutes les tâches de développement sont à faire.
+**État au 25/11/2026** : conception terminée. Tâches 1, 3, 4, 5 et 6 faites (MySQL, GitHub + Gitflow, Laravel avec le starter kit Livewire, Docker de dev, CI). Tâche 9 (migrations, modèles, Enums, factories) en cours de relecture. Le scheduler n'est pas encore dans le `compose.yml` : il faudra l'ajouter pour la tâche 23.
 
 ---
 
