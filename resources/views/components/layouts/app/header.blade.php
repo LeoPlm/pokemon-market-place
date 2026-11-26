@@ -16,7 +16,7 @@
     <flux:navbar class="-mb-px max-lg:hidden">
       <flux:navbar.item icon="layout-grid" href="{{ route('dashboard') }}" :current="request()->routeIs('dashboard')"
         wire:navigate>
-        Dashboard
+        Tableau de bord
       </flux:navbar.item>
     </flux:navbar>
 
@@ -24,7 +24,7 @@
 
     <flux:navbar class="py-0! mr-1.5 space-x-0.5">
       <flux:tooltip content="Search" position="bottom">
-        <flux:navbar.item class="!h-10 [&>div>svg]:size-5" icon="magnifying-glass" href="#" label="Search" />
+        <flux:navbar.item class="!h-10 [&>div>svg]:size-5" icon="magnifying-glass" href="#" label="Rechercher" />
       </flux:tooltip>
       <flux:tooltip content="Repository" position="bottom">
         <flux:navbar.item class="h-10 max-lg:hidden [&>div>svg]:size-5" icon="folder-git-2"
@@ -62,7 +62,7 @@
         <flux:menu.separator />
 
         <flux:menu.radio.group>
-          <flux:menu.item href="/settings/profile" icon="cog" wire:navigate>Settings</flux:menu.item>
+          <flux:menu.item href="/settings/profile" icon="cog" wire:navigate>Paramètres</flux:menu.item>
         </flux:menu.radio.group>
 
         <flux:menu.separator />
@@ -70,7 +70,7 @@
         <form method="POST" action="{{ route('logout') }}" class="w-full">
           @csrf
           <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
-            {{ __('Log Out') }}
+            Se déconnecter
           </flux:menu.item>
         </form>
       </flux:menu>
@@ -87,10 +87,10 @@
     </a>
 
     <flux:navlist variant="outline">
-      <flux:navlist.group heading="Platform">
+      <flux:navlist.group heading="Plateforme">
         <flux:navlist.item icon="layout-grid" href="{{ route('dashboard') }}" :current="request()->routeIs('dashboard')"
           wire:navigate>
-          Dashboard
+          Tableau de bord
         </flux:navlist.item>
       </flux:navlist.group>
     </flux:navlist>

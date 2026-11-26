@@ -33,7 +33,10 @@ services:
   db:
     image: mysql:8.4
     ports:
-      - "3306:3306"
+      # Port publié sur la machine (pour un client SQL comme DBeaver). 3306 par défaut ;
+      # si ce port est déjà pris sur ta machine, définis FORWARD_DB_PORT=3307 (par ex.) dans ton .env.
+      # L'application, elle, joint toujours la base en interne sur db:3306.
+      - "${FORWARD_DB_PORT:-3306}:3306"
     environment:
       MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_USER: ${DB_USERNAME}

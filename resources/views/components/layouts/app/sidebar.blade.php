@@ -14,9 +14,9 @@
     </a>
 
     <flux:navlist variant="outline">
-      <flux:navlist.group heading="Platform" class="grid">
+      <flux:navlist.group heading="Plateforme" class="grid">
         <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
-          wire:navigate>Dashboard</flux:navlist.item>
+          wire:navigate>Tableau de bord</flux:navlist.item>
       </flux:navlist.group>
     </flux:navlist>
 
@@ -59,7 +59,7 @@
         <flux:menu.separator />
 
         <flux:menu.radio.group>
-          <flux:menu.item href="/settings/profile" icon="cog" wire:navigate>Settings</flux:menu.item>
+          <flux:menu.item href="/settings/profile" icon="cog" wire:navigate>Paramètres</flux:menu.item>
         </flux:menu.radio.group>
 
         <flux:menu.separator />
@@ -67,7 +67,7 @@
         <form method="POST" action="{{ route('logout') }}" class="w-full">
           @csrf
           <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
-            {{ __('Log Out') }}
+            Se déconnecter
           </flux:menu.item>
         </form>
       </flux:menu>
@@ -105,7 +105,7 @@
         <flux:menu.separator />
 
         <flux:menu.radio.group>
-          <flux:menu.item href="/settings/profile" icon="cog" wire:navigate>Settings</flux:menu.item>
+          <flux:menu.item href="/settings/profile" icon="cog" wire:navigate>Paramètres</flux:menu.item>
         </flux:menu.radio.group>
 
         <flux:menu.separator />
@@ -113,7 +113,7 @@
         <form method="POST" action="{{ route('logout') }}" class="w-full">
           @csrf
           <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
-            {{ __('Log Out') }}
+            Se déconnecter
           </flux:menu.item>
         </form>
       </flux:menu>
