@@ -68,7 +68,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 }; ?>
 
 <div class="flex flex-col gap-6">
-  <x-auth-header title="Reset password" description="Please enter your new password below" />
+  <x-auth-header title="Réinitialiser le mot de passe" description="Choisissez votre nouveau mot de passe" />
 
   <!-- Session Status -->
   <x-auth-session-status class="text-center" :status="session('status')" />
@@ -76,26 +76,26 @@ new #[Layout('components.layouts.auth')] class extends Component {
   <form wire:submit="resetPassword" class="flex flex-col gap-6">
     <!-- Email Address -->
     <div class="grid gap-2">
-      <flux:input wire:model="email" id="email" label="{{ __('Email') }}" type="email" name="email" required
+      <flux:input wire:model="email" id="email" label="Adresse e-mail" type="email" name="email" required
         autocomplete="email" />
     </div>
 
     <!-- Password -->
     <div class="grid gap-2">
-      <flux:input wire:model="password" id="password" label="{{ __('Password') }}" type="password" name="password"
-        required autocomplete="new-password" placeholder="Password" />
+      <flux:input wire:model="password" id="password" label="Nouveau mot de passe" type="password" name="password"
+        required autocomplete="new-password" placeholder="Nouveau mot de passe" />
     </div>
 
     <!-- Confirm Password -->
     <div class="grid gap-2">
-      <flux:input wire:model="password_confirmation" id="password_confirmation" label="{{ __('Confirm password') }}"
+      <flux:input wire:model="password_confirmation" id="password_confirmation" label="Confirmer le mot de passe"
         type="password" name="password_confirmation" required autocomplete="new-password"
-        placeholder="Confirm password" />
+        placeholder="Confirmer le mot de passe" />
     </div>
 
     <div class="flex items-center justify-end">
       <flux:button type="submit" variant="primary" class="w-full">
-        {{ __('Reset password') }}
+        Réinitialiser le mot de passe
       </flux:button>
     </div>
   </form>

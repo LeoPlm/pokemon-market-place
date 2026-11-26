@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Volt\Volt;
 use Tests\TestCase;
 
@@ -22,8 +23,8 @@ class RegistrationTest extends TestCase
         $response = Volt::test('auth.register')
             ->set('username', 'testuser')
             ->set('email', 'test@example.com')
-            ->set('password', 'password')
-            ->set('password_confirmation', 'password')
+            ->set('password', 'Password1')
+            ->set('password_confirmation', 'Password1')
             ->call('register');
 
         $response
@@ -31,5 +32,34 @@ class RegistrationTest extends TestCase
             ->assertRedirect(route('dashboard', absolute: false));
 
         $this->assertAuthenticated();
+    }
+
+    public function test_registration_is_rate_limited_by_ip(): void
+    {
+        RateLimiter::increment('register|127.0.0.1', 3600, 10);
+
+        Volt::test('auth.register')
+            ->set('username', 'testuser')
+            ->set('email', 'test@example.com')
+            ->set('password', 'Password1')
+            ->set('password_confirmation', 'Password1')
+            ->call('register')
+            ->assertHasErrors('email');
+
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => 'test@example.com']);
+    }
+
+    public function test_weak_passwords_are_rejected(): void
+    {
+        Volt::test('auth.register')
+            ->set('username', 'testuser')
+            ->set('email', 'test@example.com')
+            ->set('password', 'password')
+            ->set('password_confirmation', 'password')
+            ->call('register')
+            ->assertHasErrors('password');
+
+        $this->assertGuest();
     }
 }

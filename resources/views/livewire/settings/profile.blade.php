@@ -66,29 +66,29 @@ new class extends Component {
 <section class="w-full">
   @include('partials.settings-heading')
 
-  <x-settings.layout heading="Profile" subheading="Update your username and email address">
+  <x-settings.layout heading="Profil" subheading="Modifiez votre pseudo et votre adresse e-mail">
     <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
-      <flux:input wire:model="username" label="{{ __('Pseudo') }}" type="text" name="username" required autofocus
+      <flux:input wire:model="username" label="Pseudo" type="text" name="username" required autofocus
         autocomplete="username" />
 
       <div>
-        <flux:input wire:model="email" label="{{ __('Email') }}" type="email" name="email" required
+        <flux:input wire:model="email" label="Adresse e-mail" type="email" name="email" required
           autocomplete="email" />
 
         @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !auth()->user()->hasVerifiedEmail())
           <div>
             <p class="mt-2 text-sm text-gray-800">
-              {{ __('Your email address is unverified.') }}
+              Votre adresse e-mail n'est pas encore vérifiée.
 
               <button wire:click.prevent="resendVerificationNotification"
                 class="focus:outline-hidden rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                {{ __('Click here to re-send the verification email.') }}
+                Cliquez ici pour renvoyer l'e-mail de vérification.
               </button>
             </p>
 
             @if (session('status') === 'verification-link-sent')
               <p class="mt-2 text-sm font-medium text-green-600">
-                {{ __('A new verification link has been sent to your email address.') }}
+                Un nouveau lien de vérification a été envoyé à votre adresse e-mail.
               </p>
             @endif
           </div>
@@ -97,11 +97,11 @@ new class extends Component {
 
       <div class="flex items-center gap-4">
         <div class="flex items-center justify-end">
-          <flux:button variant="primary" type="submit" class="w-full">{{ __('Save') }}</flux:button>
+          <flux:button variant="primary" type="submit" class="w-full">Enregistrer</flux:button>
         </div>
 
         <x-action-message class="me-3" on="profile-updated">
-          {{ __('Saved.') }}
+          Enregistré.
         </x-action-message>
       </div>
     </form>
